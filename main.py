@@ -7,7 +7,8 @@ def player_vs_pc(mastercode):
     """
     tries = 0
     print("These are the colors to choose from: ", ['red', 'blue', 'green', 'yellow', 'white', 'black'])
-    print(mastercode)  # Debug output 
+    #print(mastercode)  # Uncomment this for debugging purposes to see the mastercode
+    print("Try to guess the code!")
     while tries < 12:
         player_guess = check_player_input()
         black_pins, white_pins = compare_code(mastercode, player_guess)
@@ -34,7 +35,7 @@ def pc_vs_player():
     while True:
         print("Enter a mastercode for the computer to guess.")
         player_code = check_player_input()
-        option = input("Choose the pc's strategy:\n 1: Shapiro Strategy\n 2: Knuth Strategy??\n Your choice: ")
+        option = input("Choose the pc's strategy:\n 1: Shapiro Strategy\n 2: Knuth Strategy\n Your choice: ")
         if option in ['1', '2']:
             pc_strategy(player_code, option)
             play_again = ask_play_again()

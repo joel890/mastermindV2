@@ -38,10 +38,8 @@ def check_player_input():
                     print(f"'{color}' is not a valid color. Try again.")
 
 def ask_play_again():
-    """Ask the player if they want to play again.
-
-    Returns:
-        The player's choice ('yes' or 'no').
+    """
+    Ask the player if they want to play again.
     """
     while True:
         play_again = input("Play again? (yes/no): ").lower().strip()

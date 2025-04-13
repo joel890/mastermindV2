@@ -44,24 +44,84 @@ def is_consistent(combination, guess, feedback):
 
 def pc_strategy(mastercode, option):
     """
-    The computer tries to crack the code using the given strategy.
+    Checks the given option and chooses either the simple Shapiro strategy (option '1')
+    or the full Knuth minimax strategy (option '2'). The chosen strategy is used to guess the
+    mastercode.
+    """
+    if option == '1':
+        return shapiro_strategy(mastercode)
+    elif option == '2':
+        return knuth_strategy(mastercode)
+    else:
+        print("Invalid option provided. Please select '1' for Shapiro strategy or '2' for Knuth strategy.")
+        return None
+
+def shapiro_strategy(mastercode):
+    """
+    Simple (Shapiro) strategy: Use the first consistent guess from the ordered list.
     """
     attempts = 0
     possible_combinations = all_combinations[:]  # copy of all possible combinations
-    if option == '1':
-        guess = possible_combinations[0]  # Choose the first guess of the list
-    else:
-        guess = [colors[0], colors[0], colors[1], colors[1]]  # Choose the first 2 colors for the AABB effect.
+    guess = possible_combinations[0] # first guess
     while attempts < 12:
         attempts += 1
         feedback = compare_code(mastercode, guess)
-
         print(f"Tries {attempts}: {guess} => Black pins: {feedback[0]}, White pins: {feedback[1]}")
-
         if feedback == (4, 0):
-            print(f"You guessed the code: {guess} in {attempts} tries!")
+            print(f"Computer guessed the code: {guess} in {attempts} tries using Shapiro strategy!")
             return guess
-
-        # Only keep the combinations that suit the given feedback
         possible_combinations = [c for c in possible_combinations if is_consistent(c, guess, feedback)]
+        if not possible_combinations:
+            break
         guess = possible_combinations[0]
+    print("Failed to guess the code within 12 attempts.")
+    return None
+
+def knuth_strategy(mastercode):
+    """Knuth minimax strategy: selecting the guess that minimizes the maximum number of remaining possibilities."""
+    attempts = 0
+    S = all_combinations[:]  # copy of remaining solutions
+    possible_guesses = all_combinations[:]  # all allowed guesses
+    guess = [colors[0], colors[0], colors[1], colors[1]]  # first guess (AABB pattern)
+    
+    while True:
+        feedback = compare_code(mastercode, guess)  # get feedback for current guess
+        print(f"Tries {attempts}: {guess} => Black pins: {feedback[0]}, White pins: {feedback[1]}")  # display result
+        
+        if feedback == (4, 0):  # correct guess
+            print(f"Computer guessed the code: {guess} in {attempts} tries using Knuth's strategy!")
+            return guess
+        
+        S = [code for code in S if is_consistent(code, guess, feedback)]  # update remaining possibilities
+        if not S:
+            print("No consistent solution left.")
+            return None
+        
+        min_score = float('inf')  # initialize worst-case count
+        next_guess_candidates = []  # list for candidate guesses
+        
+        # Evaluate each possible guess from the full set
+        for g in possible_guesses:
+            counts = {}  # feedback count dictionary
+            for code in S:
+                r = compare_code(code, g)  # feedback if g would be the guess
+                counts[r] = counts.get(r, 0) + 1  # count occurrences of this feedback
+            worst = max(counts.values()) if counts else 0  # worst-case partition size for guess g
+            
+            if worst < min_score:
+                min_score = worst  # new minimum worst-case found
+                next_guess_candidates = [g]  # start new candidate list
+            elif worst == min_score:
+                next_guess_candidates.append(g)  # add equally good candidate
+        
+        chosen_guess = None
+        # Prefer candidate that is in the set S of possible solutions
+        for candidate in next_guess_candidates:
+            if candidate in S:
+                chosen_guess = candidate  # select candidate from S
+                break
+        if chosen_guess is None:
+            chosen_guess = next_guess_candidates[0]  # fallback: choose first candidate
+        
+        guess = chosen_guess  # update guess for next iteration
+        attempts += 1
